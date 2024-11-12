@@ -39,7 +39,6 @@ employee_topic_name = "bf_employee_salary"
 csv_file = 'Employee_Salaries.csv'
 
 #Can use the confluent_kafka.Producer class directly
-
 class salaryProducer(Producer):
     #if connect without using a docker: host = localhost and port = 29092
     #if connect within a docker container, host = 'kafka' or whatever name used for the kafka container, port = 9092
@@ -63,9 +62,9 @@ if __name__ == '__main__':
     reader = DataHandler()
     producer = salaryProducer()
     '''
-    #implement other instances as needed
-    #processing line by line
-    #finish code with your own logic and reasoning
+    # implement other instances as needed
+    # you can let producer process line by line, and stop after all lines are processed, or you can keep the producer running.
+    # finish code with your own logic and reasoning
 
     for line in lines:
         emp = Employee.from_csv_line(line)

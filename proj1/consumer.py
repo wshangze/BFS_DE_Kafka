@@ -80,12 +80,8 @@ class ConsumingMethods:
                 port = '5432',
                 password="postgres")
             conn.autocommit = True
-            # create a cursor
             cur = conn.cursor()
-            result = cur.execute(
-            f"insert into  department_employee_salary (department,total_salary) values ('{e.emp_dept}',{int(float(e.emp_salary))}) on conflict(department) do update set total_salary = department_employee_salary.total_salary + {int(float(e.emp_salary))} "
-            ),
-            
+            #your logic goes here
             cur.close()
         except Exception as err:
             print(err)
