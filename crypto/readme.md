@@ -1,5 +1,6 @@
 # Project Overview
-Let's say now you are working at a finance company, and your manager wants you to build a Kafka-based monitoring system for tracking currency changes. It integrates with CoinCap to retrieve live currency data, allowing users to create different consumer groups and keys to monitor specific currencies (e.g., BTC, ETH) as needed. The setup includes essential components like Kafka, Zookeeper, PostgreSQL, and custom Python APIs for data retrieval and consumer group management. \n
+Let's say now you are working at a finance company, and your manager wants you to build a Kafka-based monitoring system for tracking currency changes. It integrates with CoinCap to retrieve live currency data, allowing users to create different consumer groups and keys to monitor specific currencies (e.g., BTC, ETH) as needed. The setup includes essential components like Kafka, Zookeeper, PostgreSQL, and custom Python APIs for data retrieval and consumer group management. \
+\
 As of now, the system only monitors the BTC product and simply dumps all the data into a Postgre db table, but you can add as many services as you like to implement some trading strategy (moving average crossover strat for instance).
 
 # Components
