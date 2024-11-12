@@ -26,7 +26,8 @@ An additional consumer service (`DAConsumer.py`) is configured but commented out
 # Usage
 1. **Start the Project**: Run the Docker Compose file to start all services.
    ```bash
-   docker-compose up
+   docker-compose build
+   docker-compose up -d
 
 2. **Connect to a database and create a table**: Connect to your postgre db on port 5432. Note that I choose team1 (trade team) as a schema name. You can include it as a table name, or whatever
    ```bash
