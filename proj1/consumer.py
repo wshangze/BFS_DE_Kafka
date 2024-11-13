@@ -34,8 +34,8 @@ from employee import Employee
 from producer import employee_topic_name #you do not want to hard copy it
 
 class SalaryConsumer(Consumer):
-    #if connect without using a docker: host = localhost and port = 29092
-    #if connect within a docker container, host = 'kafka' or whatever name used for the kafka container, port = 9092
+    #if running outside Docker (i.e. producer is NOT in the docer-compose file): host = localhost and port = 29092
+    #if running inside Docker (i.e. producer IS IN the docer-compose file), host = 'kafka' or whatever name used for the kafka container, port = 9092
     def __init__(self, host: str = "localhost", port: str = "29092", group_id: str = ''):
         self.conf = {'bootstrap.servers': f'{host}:{port}',
                      'group.id': group_id,
