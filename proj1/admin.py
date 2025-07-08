@@ -1,3 +1,5 @@
+# This file serves as an entry point to allow you to communicate with Kafka Cluster from Python.
+
 from confluent_kafka.admin import AdminClient,NewTopic,ConfigResource
 
 class salaryClient(AdminClient):
