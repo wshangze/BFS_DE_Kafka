@@ -4,8 +4,6 @@ services:
     environment:
       ZOOKEEPER_CLIENT_PORT: 2181
       ZOOKEEPER_TICK_TIME: 2000
-    ports:
-      - 22181:2181
 
   kafka:
     image: confluentinc/cp-kafka:7.4.0
@@ -20,9 +18,6 @@ services:
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
       KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
-      KAFKA_MIN_INSYNC_REPLICAS: 1
-
-  # Simple topic setup - runs once and exits
   kafka-setup:
     image: confluentinc/cp-kafka:7.4.0
     depends_on:
@@ -31,17 +26,15 @@ services:
       bash -c "
         echo 'Waiting for Kafka...'
         sleep 10
-        
+      
         echo 'Creating topics...'
-        kafka-topics --create --if-not-exists --bootstrap-server kafka:9092 --partitions 3 --replication-factor 1 --topic bf_employee_cdc
-        kafka-topics --create --if-not-exists --bootstrap-server kafka:9092 --partitions 1 --replication-factor 1 --topic bf_employee_cdc_dlq
-        
+        kafka-topics --create --if-not-exists --bootstrap-server kafka:9092 --partitions 3 --replication-factor 1 --topic bf_employee_salary
+      
         echo 'Topics created!'
         kafka-topics --list --bootstrap-server kafka:9092
       "
     restart: "no"
-
-  db_source:
+  db_proj1:
     image: postgres:14.1-alpine
     restart: always
     environment:
@@ -50,21 +43,8 @@ services:
     ports:
       - '5432:5432'
     volumes:
-      - db_source:/var/lib/bf_kafka_proj2_source/data
-
-  db_dst:
-    image: postgres:14.1-alpine
-    restart: always
-    environment:
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=postgres
-    ports:
-      - '5433:5432'
-    volumes:
-      - db_dst:/var/lib/bf_kafka_proj2_dst/data
-
+      - db_proj1:/var/lib/postgresql/data
+      
 volumes:
-  db_source:
-    driver: local
-  db_dst:
+  db_proj1:
     driver: local
