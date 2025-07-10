@@ -29,7 +29,6 @@ import os
 from confluent_kafka import Producer
 from employee import Employee
 import confluent_kafka
-from pyspark.sql import SparkSession
 import pandas as pd
 from confluent_kafka.serialization import StringSerializer
 import psycopg2
@@ -46,8 +45,9 @@ class cdcProducer(Producer):
                           'acks' : 'all'}
         super().__init__(producerConfig)
         self.running = True
+        self.last_action_id = 0
     
-    def fetch_cdc(self,):
+    def fetch_cdc(self):
         try:
             conn = psycopg2.connect(
                 host="localhost",
@@ -58,14 +58,22 @@ class cdcProducer(Producer):
             conn.autocommit = True
             cur = conn.cursor()
             #your logic should go here
-            
-
-
+            cur.execute("SELECT MAX(action_id) FROM emp_cdc;")
+            curr_action_id = cur.fetchone()[0]
+            if curr_action_id is None: 
+                curr_action_id = 0
+            cur.execute(
+                f"SELECT * FROM emp_cdc WHERE action_id > {self.last_action_id};"
+            )
+            rows = cur.fetchall() # returns a list of tuples, ready to proceed
+            if rows: 
+                self.last_action_id = curr_action_id
+                print(f"current row {self.last_action_id}")
             cur.close()
         except Exception as err:
-            pass
+            print(f"Error fetching CDC: {err}")
         
-        return # if you need to return sth, modify here
+        return rows# if you need to return sth, modify here
     
 
 if __name__ == '__main__':
@@ -74,5 +82,13 @@ if __name__ == '__main__':
     
     while producer.running:
         # your implementation goes here
-        pass
+        messages = producer.fetch_cdc()
+        if messages: 
+            print(messages)
+        for message in messages: 
+            print(message)
+            emp = Employee.from_line(message)
+            print(emp.to_json())
+            producer.produce(employee_topic_name, key=encoder(emp.action), value=encoder(emp.to_json()))
+            producer.poll(1)
     

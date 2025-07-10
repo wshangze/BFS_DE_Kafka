@@ -23,7 +23,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 """
 
-
+import time
 import json
 import random
 import string
@@ -31,7 +31,6 @@ import sys
 import psycopg2
 from confluent_kafka import Consumer, KafkaError, KafkaException
 from confluent_kafka.serialization import StringDeserializer
-from employee import Employee
 from employee import Employee
 from producer import employee_topic_name
 
@@ -50,10 +49,18 @@ class cdcConsumer(Consumer):
     def consume(self, topics, processing_func):
         try:
             self.subscribe(topics)
+            print(f"Subscribed to {topics}")
             while self.keep_runnning:
                 #implement your logic here
-
-                pass
+                msg = self.poll(timeout=1.0)
+                if msg is None: 
+                    print("No msg to consume... ")
+                    continue
+                if msg.error(): 
+                    print(f"Kafka error: {msg.error()}")
+                    continue
+                print(f"Processing msg {msg.value()}")
+                processing_func(msg)
         finally:
             self.close()
 
@@ -69,14 +76,25 @@ def update_dst(msg):
         conn.autocommit = True
         cur = conn.cursor()
         #your logic goes here
-
-
-
-
+        if e.action == 'DELETE': 
+            cur.execute(
+                f"DELETE FROM employees WHERE emp_id = {e.emp_id};"
+            )
+        elif e.action == 'UPDATE': 
+            cur.execute(
+                "UPDATE employees SET first_name = %s, last_name = %s, dob = %s, city = %s WHERE emp_id = %s;", 
+                (e.emp_FN, e.emp_LN, e.emp_dob, e.emp_city, e.emp_id)
+            )
+        else: 
+            cur.execute(
+                "INSERT INTO employees (emp_id, first_name, last_name, dob, city) VALUES (%s, %s, %s, %s, %s);", 
+                (e.emp_id, e.emp_FN, e.emp_LN, e.emp_dob, e.emp_city)
+            )
         cur.close()
     except Exception as err:
         print(err)
 
 if __name__ == '__main__':
-    consumer = cdcConsumer(group_id=?) 
+    consumer = cdcConsumer(group_id='employees_test') 
+    print(f"Connected to {consumer.conf}")
     consumer.consume([employee_topic_name], update_dst)
