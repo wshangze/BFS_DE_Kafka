@@ -58,16 +58,16 @@ class cdcProducer(Producer):
             conn.autocommit = True
             cur = conn.cursor()
             #your logic should go here
-            cur.execute("SELECT MAX(action_id) FROM emp_cdc;")
-            curr_action_id = cur.fetchone()[0]
-            if curr_action_id is None: 
-                curr_action_id = 0
+            # cur.execute("SELECT MAX(action_id) FROM emp_cdc;")
+            # curr_action_id = cur.fetchone()[0]
+            # if curr_action_id is None: 
+            #     curr_action_id = 0
             cur.execute(
                 f"SELECT * FROM emp_cdc WHERE action_id > {self.last_action_id};"
             )
             rows = cur.fetchall() # returns a list of tuples, ready to proceed
             if rows: 
-                self.last_action_id = curr_action_id
+                # self.last_action_id = curr_action_id
                 print(f"current row {self.last_action_id}")
             cur.close()
         except Exception as err:
@@ -90,5 +90,6 @@ if __name__ == '__main__':
             emp = Employee.from_line(message)
             print(emp.to_json())
             producer.produce(employee_topic_name, key=encoder(emp.action), value=encoder(emp.to_json()))
+            producer.last_action_id = emp.action_id
             producer.poll(1)
     
