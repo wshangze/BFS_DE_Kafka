@@ -29,10 +29,12 @@ import random
 import string
 import sys
 import psycopg2
-from confluent_kafka import Consumer, KafkaError, KafkaException
+from confluent_kafka import Producer, Consumer, KafkaError, KafkaException
 from confluent_kafka.serialization import StringDeserializer
 from employee import Employee
 from producer import employee_topic_name
+
+dlq_producer = Producer({'bootstrap.servers': 'localhost:29092'})
 
 class cdcConsumer(Consumer):
     #if running outside Docker (i.e. producer is NOT in the docer-compose file): host = localhost and port = 29092
@@ -85,14 +87,22 @@ def update_dst(msg):
                 "UPDATE employees SET first_name = %s, last_name = %s, dob = %s, city = %s WHERE emp_id = %s;", 
                 (e.emp_FN, e.emp_LN, e.emp_dob, e.emp_city, e.emp_id)
             )
-        else: 
+        elif e.action == 'INSERT': 
             cur.execute(
                 "INSERT INTO employees (emp_id, first_name, last_name, dob, city) VALUES (%s, %s, %s, %s, %s);", 
                 (e.emp_id, e.emp_FN, e.emp_LN, e.emp_dob, e.emp_city)
             )
+        else: 
+            raise ValueError(f"Unsupported action type: {e.action}")
         cur.close()
     except Exception as err:
-        print(err)
+        print(f"DLQ error: {err}")
+        dlq_payload = json.dumps({
+            "original value": msg.value().decode('utf-8') if isinstance(msg.value(), bytes) else msg.value(), 
+            "error": str(err)
+        })
+        dlq_producer.produce("bf_employee_cdc_dlq", value=dlq_payload)
+        dlq_producer.flush()
 
 if __name__ == '__main__':
     consumer = cdcConsumer(group_id='employees_test') 
