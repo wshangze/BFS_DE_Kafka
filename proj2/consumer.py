@@ -23,6 +23,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 """
 
+from datetime import datetime
 import time
 import json
 import random
@@ -66,9 +67,26 @@ class cdcConsumer(Consumer):
         finally:
             self.close()
 
+def is_valid_employee(e: Employee) -> bool:
+    try:
+        if not e.emp_FN or not e.emp_LN or not e.emp_city:
+            return False
+        if e.emp_id <= 0:
+            return False
+        if e.action not in {"INSERT", "UPDATE", "DELETE"}:
+            return False
+        datetime.strptime(e.emp_dob, "%Y-%m-%d")
+        return True
+    except Exception:
+        return False
+
 def update_dst(msg):
     try:
         e = Employee(**(json.loads(msg.value())))
+
+        if not is_valid_employee(e): 
+            raise ValueError("Validation failed for employee data")
+        
         conn = psycopg2.connect(
             host="localhost",
             database="postgres",
