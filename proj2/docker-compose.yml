@@ -34,6 +34,7 @@ services:
         
         echo 'Creating topics...'
         kafka-topics --create --if-not-exists --bootstrap-server kafka:9092 --partitions 3 --replication-factor 1 --topic bf_employee_cdc
+        kafka-topics --create --if-not-exists --bootstrap-server kafka:9092 --partitions 3 --replication-factor 1 --topic bf_employee_cdc_valid
         kafka-topics --create --if-not-exists --bootstrap-server kafka:9092 --partitions 1 --replication-factor 1 --topic bf_employee_cdc_dlq
         
         echo 'Topics created!'
@@ -62,7 +63,14 @@ services:
       - '5433:5432'
     volumes:
       - db_dst:/var/lib/bf_kafka_proj2_dst/data
-
+  faust-validator:
+    build:
+      context: ./faust_validator
+    depends_on:
+      - kafka
+    environment:
+      - KAFKA_BROKER=kafka:9092
+    restart: always
 volumes:
   db_source:
     driver: local
