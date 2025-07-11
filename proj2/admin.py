@@ -49,10 +49,11 @@ class cdcClient(AdminClient):
 
 if __name__ == '__main__':
     client = cdcClient()
-    employee_topic_name = "bf_employee_cdc"
+    employee_topic_name = ["bf_employee_cdc", "bf_employee_cdc_valid"]
     num_parition = 3
-    if client.topic_exists(employee_topic_name):
-        client.delete_topic([employee_topic_name])
-    else:
-        client.create_topic(employee_topic_name, num_parition)
+    for topic in employee_topic_name: 
+        if client.topic_exists(topic):
+            client.delete_topic([topic])
+        else:
+            client.create_topic(topic, num_parition)
     

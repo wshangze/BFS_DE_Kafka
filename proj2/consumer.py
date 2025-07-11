@@ -32,7 +32,7 @@ import psycopg2
 from confluent_kafka import Producer, Consumer, KafkaError, KafkaException
 from confluent_kafka.serialization import StringDeserializer
 from employee import Employee
-from producer import employee_topic_name
+# from producer import employee_topic_name
 
 dlq_producer = Producer({'bootstrap.servers': 'localhost:29092'})
 
@@ -107,4 +107,4 @@ def update_dst(msg):
 if __name__ == '__main__':
     consumer = cdcConsumer(group_id='employees_test') 
     print(f"Connected to {consumer.conf}")
-    consumer.consume([employee_topic_name], update_dst)
+    consumer.consume(['bf_employee_cdc_valid'], update_dst)
